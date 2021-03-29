@@ -1,0 +1,59 @@
+---
+title: "Multiple Lineaer Regression on Ames Housing Data"
+author: "Zhaoshan Duan"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: 
+  pdf_document:
+    number_sections: yes
+    df_print: kable
+    highlight: tango
+fontsize: 11pt
+---
+
+\newpage
+
+# Abstract
+
+# Problem and Motivation
+
+Ames dataset fits into the long-established [*hedonic pricing method*](https://stats.oecd.org/glossary/detail.asp?ID=1225) to analyzing housing prices.
+
+neighborhood-specific and unit-specific characteristics help determine house prices.
+
+\newpage
+
+# Data Description
+
+This project uses the Ames Housing Data set by De Cock (2011).
+
+This data set describes the sale of individual residential property in Ames, Iowa from 2006 to 2010. The data set contains 2930 observations and 82 explanatory variables (23 nominal, 23 ordinal, 14 discrete, and 20 continuous) involving assessing home values.
+
+We use the `AmesHousing` package on CRAN to access the data. The package provides two version of the data: `ames_raw` and processed `ames`. Our processing and analysis are done on the processed version as it removes unique identifiers such as `Order` and `PID` , arranges all factors unordered, and engineers features with large missing values. This results in a data set with 2930 observations and 81 explanatory variables.
+
+\newpage
+
+# Question of Interest
+
+We are interested in predicting housing price, `Sale_Price` ,
+
+\newpage
+
+# Regression Analysis, Results and Interpretation
+
+Heatmap
+
+Overall F-test first
+
+then partial F-test
+
+\newpage
+
+# Conclusion
+
+# Appendices
+
+# Reference
+
+<https://cran.r-project.org/web/packages/AmesHousing/AmesHousing.pdf>
+
+<http://jse.amstat.org/v19n3/decock.pdf>
