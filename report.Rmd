@@ -12,9 +12,32 @@ fontsize: 11pt
 
 \newpage
 
+skills to demonstrate:
+
+plotting
+
+exploring regression models to answer scienfitifc questions
+
+presenting the results
+
+find a good model
+
 # Abstract
 
 # Problem and Motivation
+
+## background of the data set
+
+This project uses the Ames Housing Data set by De Cock (2011).
+
+This data set describes the sale of individual residential property in Ames, Iowa from 2006 to 2010. The data set contains 2930 observations and 82 explanatory variables (23 nominal, 23 ordinal, 14 discrete, and 20 continuous) involving assessing home values.
+
+We use the `AmesHousing` package on CRAN to access the data. The package provides two version of the data: `ames_raw` and processed `ames`. Our processing and analysis are done on the processed version as it removes unique identifiers such as `Order` and `PID` , arranges all factors unordered, and engineers features with large missing values. This results in a data set with 2930 observations and 81 explanatory variables.
+
+## motivation 
+
+why your readers
+should be interested.
 
 Ames dataset fits into the long-established [*hedonic pricing method*](https://stats.oecd.org/glossary/detail.asp?ID=1225) to analyzing housing prices.
 
@@ -23,12 +46,6 @@ neighborhood-specific and unit-specific characteristics help determine house pri
 \newpage
 
 # Data Description
-
-This project uses the Ames Housing Data set by De Cock (2011).
-
-This data set describes the sale of individual residential property in Ames, Iowa from 2006 to 2010. The data set contains 2930 observations and 82 explanatory variables (23 nominal, 23 ordinal, 14 discrete, and 20 continuous) involving assessing home values.
-
-We use the `AmesHousing` package on CRAN to access the data. The package provides two version of the data: `ames_raw` and processed `ames`. Our processing and analysis are done on the processed version as it removes unique identifiers such as `Order` and `PID` , arranges all factors unordered, and engineers features with large missing values. This results in a data set with 2930 observations and 81 explanatory variables.
 
 \newpage
 
@@ -45,6 +62,8 @@ Heatmap
 Overall F-test first
 
 then partial F-test
+
+outliers and high leverage points
 
 \newpage
 

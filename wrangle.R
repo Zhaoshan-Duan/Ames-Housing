@@ -1,6 +1,6 @@
 # set up libraries
 library(pacman)
-p_load(tidyverse,AmesHousing, Boruta)
+p_load(tidyverse,AmesHousing, Boruta, faraway)
 
 # access the data
 ames <- make_ames()
@@ -9,17 +9,15 @@ nrow(ames)
 summary(ames$Sale_Price)
 
 
-
-glimpse(ames)
-
-str(ames)
+fit <- lm(Sale_Price ~ ., ames)
+summary(fit)
 
 
-Boruta(Sale_Price ~. , data=ames) -> Boruta.test
+round(vif(fit),2) -> what
 
-ames_schools_geo
+for (val in what){
+  if (val >= 5) print(what[[val]])
+}
 
 
-ames_ord <- make_ordinal_ames()
-ord_vars <- vapply(ames_ord, is.ordered, logical(1))
-names(ord_vars)[ord_vars]
+
