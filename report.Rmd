@@ -1,63 +1,298 @@
 ---
-title: "Multiple Lineaer Regression on Ames Housing Data"
+title: "Multiple Linear Regression on Ames Housing Data"
+subtitle: "Stat 632"
 author: "Zhaoshan Duan"
 date: "`r format(Sys.time(), '%B %d, %Y')`"
-output: 
+output:
   pdf_document:
+    toc: true
     number_sections: yes
     df_print: kable
     highlight: tango
-fontsize: 11pt
+    latex_engine: xelatex
+header-includes:
+bibliography: ["packages.bib","reference.bib"]
+fontsize: 12pt
 ---
+
+```{r include=FALSE}
+source("./scripts/script.R")
+source("./scripts/figure_generator.R")
+knitr::opts_chunk$set(echo=FALSE, message=FALSE)
+```
 
 \newpage
 
-skills to demonstrate:
+# Abstract
+
+This project uses the a dataset that describes residential property sales in Ames, Iowa between 2006 and 2021.
+
+The dataset contains 2970 observations and 81 variables describing nearly every aspect of a residential property.
+
+The real estate market is often seen as an important reflection of the economy. Knowing common factors that influence the housing prices is of great interests for sellers and buyers. In this project, we are primarily interested in predicting sale prices of residential properties given explanatory variables that describe different aspects of the properties with a Multiple Linear Regression model.
+
+We will apply Multiple Linear Regression technique
+
+Univariate multiple regression
 
 plotting
 
-exploring regression models to answer scienfitifc questions
+exploring regression models to answer scientific questions
 
 presenting the results
 
 find a good model
 
-# Abstract
+\newpage
 
 # Problem and Motivation
 
-## background of the data set
+## Background of the Dataset
 
-This project uses the Ames Housing Data set by De Cock (2011).
+This project uses the Ames Housing Dataset by De Cock (2011). A contemporary alternative to the well known Boston Housing dataset. This dataset describes the sale of individual residential property in Ames, Iowa from 2006 to 2010. The original dataset contains 2930 observations and 82 explanatory variables (23 nominal, 23 ordinal, 14 discrete, and 20 continuous) involving assessing home values. Most of the explanatory variables are information that a home buyer typically sought out when purchasing properties.
 
-This data set describes the sale of individual residential property in Ames, Iowa from 2006 to 2010. The data set contains 2930 observations and 82 explanatory variables (23 nominal, 23 ordinal, 14 discrete, and 20 continuous) involving assessing home values.
+The continuous numeric variables relate to the various area dimensions for each property and the discrete numeric variables quantify the number of typical items within the house such as number of bedrooms. The nominal categorical variables identify types of dwellings, garages, materials and environmental conditions while ordinal categorical variables rate items within the property. @Ames-Original
 
-We use the `AmesHousing` package on CRAN to access the data. The package provides two version of the data: `ames_raw` and processed `ames`. Our processing and analysis are done on the processed version as it removes unique identifiers such as `Order` and `PID` , arranges all factors unordered, and engineers features with large missing values. This results in a data set with 2930 observations and 81 explanatory variables.
+## Motivation
 
-## motivation 
+For many people, homeownership is a both a dream and an achievement. It is a serious purchasing decision that requires meticulous research and careful Pro & Con analysis. Accurate prediction of housing prices provides great help in buyer's decision-making process and informs them what characteristics of the properties generally affect the prices. The same can be said for realtors. sellers and developers. Housing prices also reflect the health of the economy, which can be insightful for police makers.
 
-why your readers
-should be interested.
-
-Ames dataset fits into the long-established [*hedonic pricing method*](https://stats.oecd.org/glossary/detail.asp?ID=1225) to analyzing housing prices.
-
-neighborhood-specific and unit-specific characteristics help determine house prices.
+While there are many external factors influencing the housing price of a given property such as crime rate in the region, proximity to public schools, hospitals and busy areas, fixed characteristics of the house is often the first thing people look at. Therefore, we think it will be interesting to predict the sale price of the property using a multiple linear regression model with explanatory variables that contain information about many common aspects of the house such as number of bathrooms, size of the basement and so on. It would also be fascinating to observe the quantitative relationship between these characteristics and the sale price, and see which ones have the most influence as well as its implication to buyers' purchasing behavior.
 
 \newpage
 
 # Data Description
 
-\newpage
+We use the `AmesHousing` package on CRAN to access the data. The package provides two version of the data: `ames_raw` and processed `ames`. Our processing and analysis are done on the processed version as it removes unique identifiers such as `Order` and `PID` , arranges all factors unordered, and engineers features with large missing values. This results in a dataset with 2930 observations and 81 explanatory variables.
+
+Since our research question focuses on residential properties, we removed 168 observations since they are of non-residential types.
+
+```{r}
+property_type_summary
+```
+
+We select `Sale_Price` as our response.
+
+```{r}
+# ames %>% skim()
+```
+
+For predictors, we selected ...
 
 # Question of Interest
 
-We are interested in predicting housing price, `Sale_Price` ,
+Our primary question of interest is the accuracy of multiple linear regression to predict the sale price, `Sale_Price`, of a residential house sale based on fixed, common characteristics of that a property. The dataset is sampled into a training set and a testing set in a 75/25 split. Evaluation of the model ;
+
+bias, maximum deivation, mean absolute deviation, mean square error
+
+Our secondary questions of interest is identify features that influence the price the most.
+
+Describe in plain English the questions that your analysis will answer. Scientific, not statistical, terminology should be used here. For example, words like 'association', 'effect', or 'relationship' are okay, while 'p-value', 'coefficient,' or 'regression' are not.
 
 \newpage
 
 # Regression Analysis, Results and Interpretation
 
-Heatmap
+## Exploratory Data Analysis
+
+In this section, we investigate the dataset in details: access its missingness, summary statistics, correlation between the numeric predictors, relationship between categorical variables and the response.
+
+We also remove some observations and features in this section with reasoning reported.
+
+### Missingness
+
+We first investigate the missing values of the dataset using `DataExplorer` package. All the missing values have been recoded to 0 since this project is using the processed version of the data.
+
+```{r missingness}
+ames %>% plot_missing(ggtheme = theme_tq())
+```
+
+### Summary Statistics
+
+We then look at the summary statistics of the response variable `Sale_Price` and investigate potential influential points, correlation of the numeric features and categorical features respectively.
+
+#### Response Variable `Sale_Price`
+
+In this section we look at the response variable closely.
+
+We plot `Sale_Price` against `Gv_Liv_Area` (Above grade (ground) living area in square feet) since intuitively size of the property could be positively associated with its value. We also plot the distribution of the response in a histogram and a box plot, check the normality of the response variable in normal Q-Q plot,. Some types of transformation should be considered to improve its normality.
+
+The response has an observed mean of \$179,957.7 and an observed median of \$159,000. The variable is heavily right skewed with some potentially influential data points.
+
+```{r}
+stack_plot_response
+```
+
+| Statistics     | Values      |
+|----------------|-------------|
+| Mean           | \$179,957.7 |
+| Median         | \$159,000   |
+| Standard Error | 80,219      |
+
+: Sale_Price Statistics
+
+### Numeric Predictors
+
+We first look at the distributions of all the numeric variables. From the histograms, we noticed that some of the numeric predictors have mostly 0 values. Therefore, we remove these variables before proceeding.
+
+```{r}
+numeric_plot; 
+zero_numeric;
+```
+
+| Variable Name        | Description                                   |
+|----------------------|-----------------------------------------------|
+| `BsmtFin_SF_2`       | Type 2 finished square feet                   |
+| `Low_Qual_Fin_SF`    | Low quality finished square feet (all floors) |
+| `Kitchen_AbvGr`      | Kitchens above grade                          |
+| `Open_Porch_SF`      | Open porch area in square feet                |
+| `Enclosed_Porch`     | Enclosed porch area in square feet            |
+| `Three_season_porch` | Three season porch area in square feet        |
+| `Screen_Porch`       | Screen porch area in square feet              |
+| `Pool_Area`          | Pool area in square feet                      |
+| `Misc_Val`           | \$Value of miscellaneous feature              |
+| `Bsmt_Half_Bath`     |                                               |
+
+: Removed Numeric Predictors
+
+We then visualizing the correlation coefficients matrix of the numeric variables using heat map. Some correlation between the predictors are obvious and intuitive such as, generally `Gv_Liv_Area`: , and should be directly associated with, `First_Flr_SF`: First Floor living area in square feet, and `Bedroom_AbvGr` : Area of Bedrooms above grade.
+
+```{r}
+gz
+```
+
+The heat map also reveals low variance predictors and high muticollinearity between some predictors. We further investigate muticollinearity with Variance Inflation Factor (VIF). When we fit the model with only numeric predictors, the built-in `lm()` function already gave us a warning since it states "Coefficients: (1 not defined because of singularities)", and coefficient estimates for `Gr_Liv_Area` are `NA` values. This error occur when two or more of the predictors in the model are perfectly collinear.
+
+```{r}
+vif_summary
+```
+
+The VIF scores further shows that `Gr_Liv_Area`, `First_Flr_SF`, `Second_Flr_SF` are high colinearity. This is intuitive as general living area is measured as linear combination of first floor area, second floor area.
+
+We remove `Gr_Liv_Area` and kept
+
+```{r}
+vif_score
+```
+
+We use an algorithm introduced by Max Kuhn (2016) to investigate predictors that have close to zero variance. We removed these 9 variables from our datasets. A description of the variables removed are listed below.
+
+We visualize the distribution of all the numeric variables
+
+neighborhood-specific and unit-specific characteristics help determine house prices.
+
+describe the relevant variables that you will use in your project.
+
+We end up with a 11 numeric features in the dataset.
+
+In this section, also present and discuss relevant summary statistics and graphical displays of your dataset. Be selective about the descriptive statistics that you decide to include
+
+### Categorical Features
+
+We remove categorical varaibles that are irrelavant to our research questions first.
+
++---------------+-----------------------------------+------------------------------------------------------+
+| Variable Name | Description                       | Reason for Removal                                   |
++===============+===================================+======================================================+
+| `Longitude`   | Geographic coordinate - Longitude | Have 2776 levels.                                    |
+|               |                                   |                                                      |
+|               |                                   | May not be of interests for the buyer or the seller. |
+|               |                                   |                                                      |
+|               |                                   | Affect computation time.                             |
+|               |                                   |                                                      |
+|               |                                   | Not appropriate for linear approach.                 |
++---------------+-----------------------------------+------------------------------------------------------+
+| `Latitude`    | Geographic coordinate - Latitude  | Have 2762 levels.                                    |
+|               |                                   |                                                      |
+|               |                                   | May not be of interests for the buyer or the seller. |
+|               |                                   |                                                      |
+|               |                                   | Affect computation time.                             |
+|               |                                   |                                                      |
+|               |                                   | Not appropriate for linear approach.                 |
++---------------+-----------------------------------+------------------------------------------------------+
+|               |                                   |                                                      |
++---------------+-----------------------------------+------------------------------------------------------+
+
+: Removed Categoricals
+
+BldgType
+
+HouseStyle
+
+```{r}
+neightborhood_plot
+```
+
+```{r}
+ames4 %>% select_if(is.factor)
+```
+
+### Anomalous Analysis
+
+In earlier section, we noticed there are some exceedingly large data point in the dataset. Here we take a closer look of these potential influential points and
+
+whether we can remove them.
+
+```{r echo=FALSE}
+sale_vs_GrLivArea
+
+```
+
+## Diagnostics Checks
+
+In this section, we examine how assumptions of multiple linear regression are being met by our model at this stage.
+
+Transformation stuff ?
+
+## Model
+
+### Feature Selection
+
+Variables removed from the model:
+
+`Neighborhood` is relevant only when the interest is to model the location effect.
+
+`MSZoning` labels commercial observations as `C`.
+
+General living area with more than 4000 square feet has also been removed from the dataset according to the recommendation from paper
+
+data with house sold year at 2010 has been removed since it does not cover information for the whole year
+
+Because our research focus is on traditional residential houses, we removed 25 observations that are classified as commercial properties, and 139 observation that are floating village properties, 2 observations that are industrial properties, and 2 agricultural properties. This leave us with a dataset with 2762 observations.
+
+```{r echo=FALSE}
+property_type_summary %>% kable(caption = "MS_Zoning Summary","simple")
+```
+
+\newpage
+
+# 
+
+## Model Selection
+
+forward, backward, hybrid
+
+```{r}
+
+```
+
+Model 1
+
+A strong analysis should include the interpretation of the various coefficients, statistics, and plots associated with their model and the verification of any necessary assumptions
+
+In the first model you are allowed only limited manipulations of the original data set. You are allowed to take power transformations of the original variables [square roots, logs, inverses, squares, etc.] but you are NOT allowed to create interaction variables. This means that a variable may only be used once in an equation [if you use x2 don't use x]. Additionally, you may eliminate any data points you deem unfit. This model should have a minimum r-square of 73% and contain at least 6 variables. The intent of this project is for the majority of your effort to be devoted to creating and reviewing this model.
+
+Model 2
+
+experiment with any of the methods that were discussed during the semester for finding better models and are allowed to create any new variables they desire (such as quadratic, interaction, or indicator variables).
+
+evaluated through a cross-validation or data splitting technique where the original data set is split into two data sets: the training set and the validation set. The students are given the training set for the purpose of developing their model and I retain the validation set for use in evaluating their model. A relative grade is assigned by comparing their fit on the validation set to that of their fellow students with bonus points awarded to those who substantially exceed their fellow students and point reductions occurring for models which fit exceedingly poorly (See section 4 - Evaluating the Models for more details).
+
+Your narrative should include • Important Details of the Analysis: -- Perform the analysis in R. Depending on the questions you want to answer, this will include various items from the following list: computing coefficient estimates, R2 adj, p-values or test statistics, confidence intervals, prediction intervals, model selection procedures and results, diagnostics, etc.
+
+Do not simply use every single method we've discussed in class; you will need to convince the reader that you have used the appropriate tools for answering the question of interest. -- If you did a hypothesis test, then state your null and alternative hypothesis, the value of your test-statistic, p-value, decision, and conclusion. Provide similar detail for confidence intervals, submodel tests, ANOVA tables, etc. You can pull this information from R output, but it should be stated in the text so the reader doesn't have to go looking for it. • (Exploratory Analysis) Exploratory plots of the data and numerical summaries are essential in beginning any analysis. At this stage, scatterplots, added variable plots, boxplots, etc. can give you a sense of relationships that exist between relevant variables. Will transformations be needed/useful for any of these variables? You should comment on your findings, particularly if there are interesting or counterintuitive observations to be made. Additionally, if there is any preliminary evidence that important regression assumptions may be violated, you should mention them and suggest remedies. • Diagnostic Checks: -- Were your assumptions plausible? Why? How did you check them? -- The diagnostics shown in your report are used to show that the analyses are valid. In other words, there should be no blatant violation of the linear regression assumptions. Of course, it may take a while to arrive at a model with good diagnostics, requiring transformations for example. In this case, you need to demonstrate the necessity of these remedial steps, either by referring to your exploratory analysis or, most likely, by including in the Appendix (see below) diagnostic plots for preliminary models which showed violations of the assumptions. • Interpretation: -- What do your results mean for the questions you were trying to answer? -- All exploratory and diagnostic plots should be shown. Relevant plots with proper title, variable names, legends, etc must be included within the body of the text.
+
+Plots should be readable, but should not take up an entire page. That means that plots should not be too small or too large. -- After conducting the analysis, you should give concrete (i.e. data-specific), accurate and complete interpretations of your results. These interpretations should involve a mix of statistical terminology, variable names and appropriate scientific units. If you are using hypothesis tests, do not focus too much on p-value ≤ 0.05 or any other significance level, but rather on how strongly (or weakly) the data serve as evidence against the null hypothesis.
 
 Overall F-test first
 
@@ -69,10 +304,20 @@ outliers and high leverage points
 
 # Conclusion
 
+Summary of your findings and any comments you may have about the reliability or generalizability of your analysis. In this section you should summarize your findings based on your final model in clearly understandable, non-statistical terms. What is the main message produced by your analysis? There may also be additional questions that arise, problems you encounter, or possible extensions of your analysis that could be addressed here. Also, you may include any final comments and thoughts about your project. For example, do you trust your results? How general are your results, to what situations do they apply? Any other comments.
+
 # Appendices
+
+## Appendix 1: R scripts
+
+## Appendix 2:
+
+Any exploratory data analysis from the project, or figures and plots that you found interesting, but not of primary importance to your final analysis. For example, this appendix is appropriate to show diagnostic plots, Box-Cox plots, etc., for preliminary regression models which were not used as they showed violations of model assumptions. This may not be looked at for grading but could be useful for your own future reference. All tables and figures should be numbered and referred to by number (e.g., Figure 1, Figure 2, Table 1, etc.).
+
+\newpage
 
 # Reference
 
-<https://cran.r-project.org/web/packages/AmesHousing/AmesHousing.pdf>
-
-<http://jse.amstat.org/v19n3/decock.pdf>
+```{r eval=FALSE}
+knitr::write_bib(c(.packages(), "bookdown"), "packages.bib")
+```
